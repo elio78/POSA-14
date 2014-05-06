@@ -1,3 +1,4 @@
+
 // Import the necessary Java synchronization and scheduling classes.
 
 import java.util.concurrent.CountDownLatch;
@@ -19,8 +20,8 @@ public class PingPongRight {
     /**
      * Latch that will be decremented each time a thread exits.
      */
-    public static CountDownLatch latch = null; // TODO - You fill in here
-
+    public static CountDownLatch latch = new CountDownLatch(2); // XTODO - You fill in here
+    
     /**
      * @class PlayPingPongThread
      *
@@ -30,12 +31,23 @@ public class PingPongRight {
      */
     public static class PlayPingPongThread extends Thread
     {
-        /**
+        private SimpleSemaphore semaphore01;
+        private SimpleSemaphore semaphore02;
+		private int count;
+		/**
          * Constructor initializes the data member.
+         * @param semPing 
+         * @param semPong 
+         * @param countDown 
          */
-        public PlayPingPongThread (/* TODO - You fill in here */)
+    	
+        public PlayPingPongThread (String msg, SimpleSemaphore semPing, SimpleSemaphore semPong, int count )
         {
-            // TODO - You fill in here.
+            // DONE - You fill in here.
+        	this.printMessage = msg;
+        	this.semaphore01 = semPing;
+        	this.semaphore02 = semPong;
+        	this.count = count;
         }
 
         /**
@@ -45,19 +57,34 @@ public class PingPongRight {
          */
         public void run () 
         {
-            // TODO - You fill in here.
+            // DONE - You fill in here.
+        	for (int i = 1 ; i <= this.count ; i++) {
+        	try {     		
+        		this.semaphore01.acquire();
+        		display(this.printMessage+"("+i+")");
+        		this.semaphore02.release();
+			} catch (InterruptedException e) {
+				// XTODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
-
+        	latch.countDown();
+        }
+        private void display(String msg){
+        	System.out.println(msg);
+        }
         /**
          * String to print (either "ping!" or "pong"!) for each
          * iteration.
          */
-        // TODO - You fill in here.
+        // DONE - You fill in here.
+        private String printMessage;
 
         /**
          * The two SimpleSemaphores use to alternate pings and pongs.
          */
-        // TODO - You fill in here.
+        // DONE - You fill in here.
+        // Semaphores are defined within the main 
     }
 
     /**
@@ -67,17 +94,22 @@ public class PingPongRight {
         try {         
             // Create the ping and pong SimpleSemaphores that control
             // alternation between threads.
+        
+        	SimpleSemaphore semPing = new SimpleSemaphore(1,true);
+        	SimpleSemaphore semPong = new SimpleSemaphore(0,true);
+        	
 
-            // TODO - You fill in here.
+            // DONE - You fill in here.
 
             System.out.println("Ready...Set...Go!");
 
             // Create the ping and pong threads, passing in the string
             // to print and the appropriate SimpleSemaphores.
+            
             PlayPingPongThread ping =
-                new PlayPingPongThread(/* TODO - You fill in here */);
+                new PlayPingPongThread("Ping!",semPing,semPong, mMaxIterations);
             PlayPingPongThread pong =
-                new PlayPingPongThread(/* TODO - You fill in here */);
+                new PlayPingPongThread("Pong!",semPong,semPing, mMaxIterations);
             
             // Initiate the ping and pong threads, which will call the
             // run() hook method.
@@ -86,10 +118,11 @@ public class PingPongRight {
 
             // Use barrier synchronization to wait for both threads to
             // finish.
-
-            // TODO - replace replace the following line with a
+            
+            // DONE - replace replace the following line with a
             // CountDownLatch barrier synchronizer call that waits for
             // both threads to finish.
+            latch.await();
             throw new java.lang.InterruptedException();
         } 
         catch (java.lang.InterruptedException e)
